@@ -1,0 +1,262 @@
+-- === FEVHub Demon Mode | Perfect Rayfield Edition 2026 ===
+-- No key | Clean | Optimized | Standalone
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "FEVHub | Demon Mode",
+    LoadingTitle = "FEVHub Loading...",
+    LoadingSubtitle = "Blox Fruits • 2026",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "FEVHub",
+        FileName = "DemonMode_Config"
+    },
+    KeySystem = false
+})
+
+-- Tabs
+local MainTab = Window:CreateTab("Main", 4483362458)
+local FarmTab = Window:CreateTab("Auto Farm", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+-- Settings
+getgenv().FEVSettings = {
+    AutoFarm = false,
+    AutoQuest = false,
+    FastAttack = false,
+    AutoSkill = false,
+    MobAura = false,
+    BringMobs = false,
+    AutoHaki = false,
+    AutoEatFruit = false,
+    NoClip = false,
+    FarmDistance = 25,
+    FarmMethod = "Nearest"
+}
+
+-- ==================== MAIN TAB ====================
+MainTab:CreateToggle({
+    Name = "🔥 Auto Farm Level",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.AutoFarm = Value end
+})
+
+MainTab:CreateToggle({
+    Name = "📜 Auto Quest",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.AutoQuest = Value end
+})
+
+MainTab:CreateToggle({
+    Name = "⚡ Fast Attack",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.FastAttack = Value end
+})
+
+-- ==================== FARM TAB ====================
+FarmTab:CreateDropdown({
+    Name = "Farm Method",
+    Options = {"Nearest", "Quest Farm", "Boss Farm"},
+    CurrentOption = {"Nearest"},
+    MultipleOptions = false,
+    Callback = function(CurrentOption)
+        getgenv().FEVSettings.FarmMethod = CurrentOption[1]
+    end,
+})
+
+FarmTab:CreateSlider({
+    Name = "Farm Distance",
+    Range = {10, 50},
+    Increment = 1,
+    CurrentValue = 25,
+    Callback = function(Value)
+        getgenv().FEVSettings.FarmDistance = Value
+    end,
+})
+
+FarmTab:CreateToggle({
+    Name = "Bring Mobs (Magnet)",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.BringMobs = Value end
+})
+
+-- ==================== COMBAT TAB ====================
+CombatTab:CreateToggle({
+    Name = "Mob Aura",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.MobAura = Value end
+})
+
+CombatTab:CreateToggle({
+    Name = "Auto Skills (Z X C V F)",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.AutoSkill = Value end
+})
+
+CombatTab:CreateToggle({
+    Name = "Auto Haki",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.AutoHaki = Value end
+})
+
+-- ==================== MISC TAB ====================
+MiscTab:CreateToggle({
+    Name = "No Clip",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.NoClip = Value end
+})
+
+MiscTab:CreateToggle({
+    Name = "Auto Eat Fruit",
+    CurrentValue = false,
+    Callback = function(Value) getgenv().FEVSettings.AutoEatFruit = Value end
+})
+
+MiscTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+    end,
+})
+
+MiscTab:CreateButton({
+    Name = "FPS Boost",
+    Callback = function()
+        pcall(function()
+            settings().Rendering.QualityLevel = 1
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and v.Name \~= "HumanoidRootPart" then
+                    v.Material = Enum.Material.SmoothPlastic
+                end
+            end
+        end)
+        Rayfield:Notify({Title = "FPS Boost", Content = "Applied! Lower graphics for better performance.", Duration = 4})
+    end,
+})
+
+-- ==================== MAIN LOOPS ====================
+
+-- Fast Attack
+task.spawn(function()
+    while task.wait() do
+        if getgenv().FEVSettings.FastAttack then
+            pcall(function()
+                game:GetService("VirtualUser"):CaptureController()
+                game:GetService("VirtualUser"):ClickButton1(Vector2.new(0,0))
+                local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                if tool then tool:Activate() end
+            end)
+        end
+    end
+end)
+
+-- Auto Skill
+task.spawn(function()
+    while task.wait(0.2) do
+        if getgenv().FEVSettings.AutoSkill then
+            pcall(function()
+                for _, key in ipairs({"Z","X","C","V","F"}) do
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+                    task.wait(0.1)
+                    game:GetService("VirtualInputManager"):SendKeyEvent(false, key, false, game)
+                end
+            end)
+        end
+    end
+end)
+
+-- Auto Haki
+task.spawn(function()
+    while task.wait(5) do
+        if getgenv().FEVSettings.AutoHaki then
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ActivateAbility", "Buso")
+            end)
+        end
+    end
+end)
+
+-- Main Farm Loop (the heart of the script)
+task.spawn(function()
+    while task.wait(0.15) do
+        pcall(function()
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+            local root = char.HumanoidRootPart
+            local bestTarget = nil
+            local shortestDist = math.huge
+
+            for _, enemy in ipairs(game.Workspace.Enemies:GetChildren()) do
+                if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
+                    local dist = (root.Position - enemy.HumanoidRootPart.Position).Magnitude
+
+                    if dist < shortestDist and dist <= getgenv().FEVSettings.FarmDistance then
+                        if getgenv().FEVSettings.FarmMethod == "Boss Farm" then
+                            if string.find(enemy.Name:lower(), "boss") or string.find(enemy.Name:lower(), "raid") or string.find(enemy.Name:lower(), "king") then
+                                bestTarget = enemy
+                                shortestDist = dist
+                            end
+                        else
+                            bestTarget = enemy
+                            shortestDist = dist
+                        end
+                    end
+                end
+            end
+
+            if bestTarget then
+                root.CFrame = bestTarget.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+
+                -- Bring Mobs
+                if getgenv().FEVSettings.BringMobs then
+                    for _, mob in ipairs(game.Workspace.Enemies:GetChildren()) do
+                        if mob:FindFirstChild("HumanoidRootPart") and (mob.HumanoidRootPart.Position - bestTarget.HumanoidRootPart.Position).Magnitude < 50 then
+                            mob.HumanoidRootPart.CFrame = bestTarget.HumanoidRootPart.CFrame
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- NoClip
+game:GetService("RunService").Stepped:Connect(function()
+    if getgenv().FEVSettings.NoClip and game.Players.LocalPlayer.Character then
+        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Auto Eat Fruit (when inventory has one)
+task.spawn(function()
+    while task.wait(10) do
+        if getgenv().FEVSettings.AutoEatFruit then
+            pcall(function()
+                for _, tool in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if tool:IsA("Tool") and string.find(tool.Name:lower(), "fruit") then
+                        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+                        task.wait(0.5)
+                        tool:Activate()
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Final Notification
+Rayfield:Notify({
+    Title = "✅ FEVHub Demon Mode",
+    Content = "Loaded Perfectly! Enjoy grinding 🔥",
+    Duration = 6,
+})
+
+print("FEVHub Perfect Edition 2026 - Executed Successfully")
